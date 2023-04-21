@@ -1,9 +1,12 @@
 import requests
-
+import environ
 
 class SendRequest:
   def __init__(self, params):
-    token = "5871171868:AAETw8Q8jpl-V2odBjP32lH9BBbtgGRKHf0"
+    env = environ.Env()
+    environ.Env.read_env()
+    self.chatId = env('TG_CHAT_ID')
+    token = env('BOT_TOKEN')
     self.apiURL = f'https://api.telegram.org/bot{token}/sendMessage'
     self.params = params
 
@@ -13,7 +16,7 @@ class SendRequest:
     try:
         response = requests.post(
           self.apiURL,
-          json={'chat_id': '199003199', 'text': self.request_info()}
+          json={'chat_id': self.chatId, 'text': self.request_info()}
         )
         print(response.text)
     except Exception as e:
