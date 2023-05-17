@@ -24,26 +24,15 @@ class SendRequest:
 
   def request_info(self):
     return f'''
-New request
+New {self.params["type"]} request
 
-company: {self.params["company"]}
-message: {self.params["message"]}
 name: {self.params["name"]}
-phone: {self.params["phone"]}
-
-Segments:
-{self.request_info_segments()}
+email: {self.params["email"]}
+company: {self.params.get("company")}
+cargo description: {self.params.get("cargo_description")}
+additional information: {self.params.get("additional_information")}
+departure airport: {self.params.get("departure_airport")}
+arrival airport: {self.params.get("arrival_airport")}
+departure date: {self.params.get("departure_date")}
+payload: {self.params.get("payload")}
 '''
-
-  def request_info_segments(self):
-    segmentsString = ""
-    for segment in self.params["segments"]:
-      segmentsString += f'''------------
-ARR: {segment["ARR"]}
-Aircraft: {segment["Aircraft"]}
-DEP: {segment["DEP"]}
-Number of Flights: {segment["Number of Flights"]}
-Total Flight Time: {segment["Total Flight Time"]}
-Total Price: {segment["Total Price"]}
-'''
-    return segmentsString
