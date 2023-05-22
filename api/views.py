@@ -20,3 +20,8 @@ class AirportsApiView(APIView):
     def post(self, request, *args, **kwargs):
         response = Airports.find(json.loads(request.body))
         return Response(response, status=status.HTTP_200_OK)
+
+class ReviewsApiView(APIView):
+    def post(self, request, *args, **kwargs):
+        Client.send_review(json.loads(request.body))
+        return Response(status=status.HTTP_200_OK)
