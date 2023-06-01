@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-q4@58pux_t@$76bt(o4(vb$8-c0qt&(98i57-$uhd$xw86zimg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["64.226.124.224", "127.0.0.1"]
+ALLOWED_HOSTS = ["airmission.aero", "127.0.0.1"]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
