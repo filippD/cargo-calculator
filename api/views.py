@@ -47,6 +47,6 @@ class UploadApiView(APIView):
 			return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 def handle_uploaded_file(file):
-	with open("base.xlsx", "wb+") as destination:
+	with open("base.csv", "wb+") as destination:
 		for chunk in file.chunks():
 			destination.write(chunk)
