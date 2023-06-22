@@ -1,3 +1,5 @@
+import airportsdata
+
 import pandas as pd
 
 import numpy as np
@@ -6,11 +8,13 @@ import math
 
 import datetime as dt
 
+
 class Calculate:
   def __init__(self, params):
     self.params = params
 
   def call(self):
+    pd.set_option('display.max_columns', None)
     input_dict = self.params
     time_critical = input_dict.get("time_critical")
     general_request = not time_critical
@@ -26,12 +30,6 @@ class Calculate:
     general_priority_for_charter_focused_operators = general_request and charter_focused
 
 
-    # # Define Functions
-
-    # In[152]:
-
-
-    # distance
     def distance(lat1, lon1, lat2, lon2):
         R = 6371  # radius of the earth in km
         dLat = math.radians(lat2 - lat1)
@@ -44,24 +42,39 @@ class Calculate:
         d = R * c  # distance in km
         return d
 
-    # speed
+# speed
     def v(s, v_max, k_m):
         return (v_max * s) / (k_m + s)
+
+    # margin
+    def m(x, a_margin, b_margin, c_margin, d_margin):
+        result = (a_margin * (x - b_margin) ** c_margin + d_margin) / 100
+        if isinstance(result, complex):
+            return 0.0
+        return float(result)
+
+
+    # Function to select the first 50% smallest rows by 'price' within each group
+    def select_smallest(group):
+        num_rows = len(group)
+        num_rows_to_select = max(1, int(num_rows * 0.5))
+        selected_rows = group.head(num_rows_to_select)  # Select the first 50% smallest rows
+        return selected_rows
 
 
     # # Import Databases
 
-    # In[153]:
+    # In[831]:
 
 
-    df_base = pd.read_excel('base.xlsx')
-    df_airports = pd.read_csv('airport-codes_csv.csv')
-    df_airports[['longitude_deg', 'latitude_deg']] = df_airports.coordinates.str.split(",", expand = True).astype(float)
+    df_base = pd.read_csv('base.csv', sep=";")
+    df_airports = pd.DataFrame.from_dict(airportsdata.load(), orient='index')
+    df_airports[['lat', 'lon']] = df_airports[['lat', 'lon']].astype(float)
 
 
     # # Transform data to pd.DataFrame
 
-    # In[154]:
+    # In[832]:
 
 
     df_base['arr_origin'] = input_dict['arr_origin']
@@ -73,7 +86,7 @@ class Calculate:
 
     # # Load Coordinates
 
-    # In[155]:
+    # In[833]:
 
 
 
@@ -81,9 +94,9 @@ class Calculate:
 
     df_airports_v1 = pd.DataFrame()
 
-    df_airports_v1['arr_origin'] = df_airports['iata_code']
-    df_airports_v1['dep_airport_lat'] = df_airports['latitude_deg']
-    df_airports_v1['dep_airport_long'] = df_airports['longitude_deg']
+    df_airports_v1['arr_origin'] = df_airports['iata']
+    df_airports_v1['dep_airport_lat'] = df_airports['lat']
+    df_airports_v1['dep_airport_long'] = df_airports['lon']
 
     df_base = df_base.merge(df_airports_v1, on='arr_origin', how='left')
 
@@ -91,16 +104,16 @@ class Calculate:
 
     df_airports_v2 = pd.DataFrame()
 
-    df_airports_v2['arr_destination'] = df_airports['iata_code']
-    df_airports_v2['arr_airport_lat'] = df_airports['latitude_deg']
-    df_airports_v2['arr_airport_long'] = df_airports['longitude_deg']
+    df_airports_v2['arr_destination'] = df_airports['iata']
+    df_airports_v2['arr_airport_lat'] = df_airports['lat']
+    df_airports_v2['arr_airport_long'] = df_airports['lon']
 
     df_base = df_base.merge(df_airports_v2, how='left', on='arr_destination')
 
 
     # # Load Distances
 
-    # In[156]:
+    # In[834]:
 
 
     df_base['flight_distance'] = df_base.apply(lambda row: distance(row.dep_airport_lat, row.dep_airport_long, row.arr_airport_lat, row.arr_airport_long) , axis = 1)
@@ -114,7 +127,7 @@ class Calculate:
 
     # # Flight
 
-    # In[157]:
+    # In[835]:
 
 
     # Number of Flight legs
@@ -165,7 +178,7 @@ class Calculate:
 
     # # Empty Leg
 
-    # In[158]:
+    # In[836]:
 
 
     # Number of Empty legs
@@ -216,7 +229,7 @@ class Calculate:
 
     # # Ferry 1 Virtual
 
-    # In[159]:
+    # In[837]:
 
 
     # Number of Ferry 1 segments
@@ -243,7 +256,7 @@ class Calculate:
 
     # # Ferry 1 Current
 
-    # In[160]:
+    # In[838]:
 
 
     # Number of Ferry 1 segments
@@ -270,7 +283,7 @@ class Calculate:
 
     # # Ferry 2
 
-    # In[161]:
+    # In[839]:
 
 
     # Number of Ferry 2 segments
@@ -297,7 +310,7 @@ class Calculate:
 
     # # Time-critical quotations
 
-    # In[162]:
+    # In[840]:
 
 
     # Time
@@ -305,13 +318,48 @@ class Calculate:
     df_base['empty_time'] = df_base['empty_time']
     df_base['ferry_time'] = np.minimum(df_base['ferry_1_virtual_time'], df_base['ferry_1_current_time'])  + df_base['ferry_2_time']
 
+    # Time Totals
+    df_base['total_time'] = df_base['flight_time'] + df_base['empty_time'] + df_base['ferry_time']
+    df_base['total_ferry_time'] = df_base['empty_time'] + df_base['ferry_time']
+
     # Cost
     df_base['flight_cost'] = df_base['flight_cost']
     df_base['empty_cost'] = df_base['empty_cost']
     df_base['ferry_cost'] = np.minimum(df_base['ferry_1_virtual_cost'], df_base['ferry_1_current_cost']) + df_base['ferry_2_cost']
+    df_base['total_cost'] = df_base['flight_cost'] + df_base['empty_cost'] + df_base['ferry_cost']
+
+    # Margin
+    df_base['margin_h'] = df_base.apply(lambda row: m(row.total_time, row.a_margin, row.b_margin, row.c_margin, row.d_margin) if m(row.total_time, row.a_margin, row.b_margin, row.c_margin, row.d_margin) > 0 else 3.00, axis=1)
 
     # Price
-    df_base['price'] = (df_base['flight_cost'] + df_base['empty_cost'] + df_base['ferry_cost']) * (1+df_base['margin_h'])
+    df_base['price'] = df_base['total_cost'] * (1+df_base['margin_h'])
+
+    # -----------
+
+    # Drop nan in DataFrame
+    df_base = df_base.dropna(subset='price')
+
+    # Sort the DataFrame by 'price' in ascending order
+    df_base_sorted = df_base.sort_values(by='price')
+
+    # Group the sorted DataFrame by 'operator' and 'Category'
+    grouped = df_base_sorted.groupby(['operator', 'Category'])
+
+    # Apply the function to each group
+    df_selected = grouped.apply(select_smallest)
+    df_selected = df_selected.sort_values(by='price')
+    df_selected = df_selected.reset_index(drop=True)
+
+    df_average_price = df_selected.groupby(['operator', 'Category'])['price'].mean().reset_index()
+
+    df_unique = df_selected.drop_duplicates(subset=['operator', 'Category'])
+    df_unique = df_unique.reset_index(drop=True)
+    df_unique = df_unique.drop('price', axis=1)
+
+    df_merged = pd.merge(df_unique, df_average_price, on=['operator', 'Category'], how='left')
+    df_base = df_merged
+
+    # -----------
 
     # df_filter
     if time_critical_priority_for_one_leg_flight == True and time_critical_priority_for_charter_focused_operators == True:
@@ -333,6 +381,8 @@ class Calculate:
     df_output['Reg'] = df_base['reg']
     df_output['Operator'] = df_base['operator']
     df_output['Aircraft'] = df_base['type_text']
+    df_output['Position Time'] = np.minimum(df_base['ferry_1_virtual_time'], df_base['ferry_1_current_time'])
+    df_output['Position Time'] = df_output['Position Time'].apply(lambda x: '({1}h {0}min Pos.)'.format(round((x % 1)*60), round((x - (x % 1)))))
     df_output['Flight Time'] = df_base['flight_time']
     df_output['Flight Time'] = df_output['Flight Time'].apply(lambda x: '{1}h {0}min'.format(round((x % 1)*60), round((x - (x % 1)))))
     df_output['Number of Flights'] = df_base['num_flights'].apply(lambda x: '{} leg'.format(x))
@@ -343,15 +393,14 @@ class Calculate:
     df_output['Contact'] = df_base['contact']
 
     # dict_output
-    dict_output_time_critical = df_output.to_dict('records')
-
+    dict_output_time_critical = df_output.to_dict('records')[0:8]
 
     dict_output_time_critical
 
 
     # # General quotations
 
-    # In[163]:
+    # In[841]:
 
 
     # Time
@@ -359,13 +408,48 @@ class Calculate:
     df_base['empty_time'] = df_base['empty_time']
     df_base['ferry_time'] = df_base['ferry_1_virtual_time'] + df_base['ferry_2_time']
 
+    # Time Totals
+    df_base['total_time'] = df_base['flight_time'] + df_base['empty_time'] + df_base['ferry_time']
+    df_base['total_ferry_time'] = df_base['empty_time'] + df_base['ferry_time']
+
     # Cost
     df_base['flight_cost'] = df_base['flight_cost']
     df_base['empty_cost'] = df_base['empty_cost']
     df_base['ferry_cost'] = df_base['ferry_1_virtual_cost'] + df_base['ferry_2_cost']
+    df_base['total_cost'] = df_base['flight_cost'] + df_base['empty_cost'] + df_base['ferry_cost']
+
+    # Margin
+    df_base['margin_h'] = df_base.apply(lambda row: m(row.total_time, row.a_margin, row.b_margin, row.c_margin, row.d_margin) if m(row.total_time, row.a_margin, row.b_margin, row.c_margin, row.d_margin) > 0 else 3.00, axis=1)
 
     # Price
-    df_base['price'] = (df_base['flight_cost'] + df_base['empty_cost'] + df_base['ferry_cost']) * (1+df_base['margin_h'])
+    df_base['price'] = df_base['total_cost'] * (1+df_base['margin_h'])
+
+    # -----------
+
+    # Drop nan in DataFrame
+    df_base = df_base.dropna(subset='price')
+
+    # Sort the DataFrame by 'price' in ascending order
+    df_base_sorted = df_base.sort_values(by='price')
+
+    # Group the sorted DataFrame by 'operator' and 'Category'
+    grouped = df_base_sorted.groupby(['operator', 'Category'])
+
+    # Apply the function to each group
+    df_selected = grouped.apply(select_smallest)
+    df_selected = df_selected.sort_values(by='price')
+    df_selected = df_selected.reset_index(drop=True)
+
+    df_average_price = df_selected.groupby(['operator', 'Category'])['price'].mean().reset_index()
+
+    df_unique = df_selected.drop_duplicates(subset=['operator', 'Category'])
+    df_unique = df_unique.reset_index(drop=True)
+    df_unique = df_unique.drop('price', axis=1)
+
+    df_merged = pd.merge(df_unique, df_average_price, on=['operator', 'Category'], how='left')
+    df_base = df_merged
+
+    # -----------
 
     # df_filter
     if general_priority_for_one_leg_flight == True and general_priority_for_charter_focused_operators == True:
@@ -380,7 +464,6 @@ class Calculate:
     if general_priority_for_one_leg_flight != True and general_priority_for_charter_focused_operators != True:
         df_base = df_base.sort_values(by=['price'], ascending=[True]).reset_index(drop=True)
 
-        
     # df_output
     df_output = pd.DataFrame()
     df_output['DEP'] = df_base['arr_origin']
@@ -388,6 +471,8 @@ class Calculate:
     df_output['Reg'] = df_base['reg']
     df_output['Operator'] = df_base['operator']
     df_output['Aircraft'] = df_base['type_text']
+    df_output['Position Time'] = df_base['ferry_1_virtual_time']
+    df_output['Position Time'] = df_output['Position Time'].apply(lambda x: '({1}h {0}min Pos.)'.format(round((x % 1)*60), round((x - (x % 1)))))
     df_output['Flight Time'] = df_base['flight_time']
     df_output['Flight Time'] = df_output['Flight Time'].apply(lambda x: '{1}h {0}min'.format(round((x % 1)*60), round((x - (x % 1)))))
     df_output['Number of Flights'] = df_base['num_flights'].apply(lambda x: '{} leg'.format(x))
@@ -398,8 +483,5 @@ class Calculate:
     df_output['Contact'] = df_base['contact']
 
     # dict_output
-    dict_output_general = df_output.to_dict('records')
-
-
+    dict_output_general = df_output.to_dict('records')[0:8]
     return dict_output_general
-
