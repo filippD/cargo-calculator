@@ -20,7 +20,6 @@ DEBUG = True
 ALLOWED_HOSTS = ["airmission.aero", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = ['https://*.airmission.aero','https://*.127.0.0.1']
 
-
 CORS_ORIGIN_ALLOW_ALL = True
 
 
@@ -146,3 +145,6 @@ SIMPLE_JWT = {
      'ROTATE_REFRESH_TOKENS': True,
      'BLACKLIST_AFTER_ROTATION': True
 }
+
+STATIC_URL = "./static/"
+STATIC_ROOT = "./static"
