@@ -14,6 +14,7 @@ class User(AbstractUser):
     )
     is_premium = models.BooleanField(default=False)
     searches_left = models.IntegerField(default=3)
+    max_searches = models.IntegerField(default=3)
     company_name = models.CharField(max_length=255, null=True)
     name = models.CharField(max_length=255, null=True)
 

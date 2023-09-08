@@ -4,7 +4,7 @@ from .models import User, UserSession, CharterHistory
 class CurrentUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'id', 'is_premium', 'searches_left')
+        fields = ('email', 'id', 'is_premium', 'searches_left', 'max_searches')
 
 class UserSessionSerializer(serializers.ModelSerializer):
     # session_id = serializers.UUIDField(format='hex')
