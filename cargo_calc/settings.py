@@ -15,7 +15,7 @@ environ.Env.read_env()
 SECRET_KEY = 'django-insecure-q4@58pux_t@$76bt(o4(vb$8-c0qt&(98i57-$uhd$xw86zimg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["airmission.aero", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = ['https://*.airmission.aero','https://*.127.0.0.1']

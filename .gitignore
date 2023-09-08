@@ -4,3 +4,4 @@
 base.csv
 google_auth.json
 db.sqlite3
+/static
