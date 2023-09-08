@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import CurrentUserSerializer, UserSessionSerializer
 from django.forms.models import model_to_dict
 from rest_framework_simplejwt.tokens import RefreshToken
+import pandas as pd
 
 class CalculateApiView(APIView):
   def post(self, request, *args, **kwargs):
@@ -62,6 +63,27 @@ class ReviewsApiView(APIView):
 		Client.send_review(json.loads(request.body))
 		return Response(status=status.HTTP_200_OK)
 
+class CharterCompanyApiView(APIView):
+  authentication_classes = []
+  permission_classes = []
+  def post(self, request, charter_id):
+    df = pd.read_csv('base.csv', sep=";")
+    charter_company = df[df["reg"] == charter_id]
+    # res = charter_company
+    df_output = pd.DataFrame()
+    df_output["airline"] = charter_company["airline"]
+    df_output["email"] = charter_company["email"]
+    df_output["phone"] = charter_company['phone'].fillna('') if not charter_company['phone'].empty else charter_company['phone']
+    df_output["link"] = charter_company['link'].fillna('') if not charter_company['link'].empty else charter_company['link']
+    df_output["form"] = charter_company['form'].fillna('') if not charter_company['form'].empty else charter_company['form']
+    df_output["Operator"] = charter_company["operator"]
+    rsp = df_output.to_dict("records")
+    # rsp = res.to_dict("records")
+    # rsp = json.dumps(charter_company.to_dict("records"), allow_nan=True)
+
+		# Client.send_review(json.loads(request.body))
+    return Response(rsp, status=status.HTTP_200_OK)
+
 class RequestPaymentApiView(APIView):
   permission_classes = (IsAuthenticated, )
 
@@ -85,7 +107,7 @@ class AuthorizeApiView(APIView):
 
 class SignUpApiView(APIView):
     def post(self, request, *args, **kwargs):
-      try:
+      # try:
         params = json.loads(request.body)
         if params.get("session_id"):
           try:
@@ -96,11 +118,17 @@ class SignUpApiView(APIView):
           session = None
 
         searches_left = session.searches_left if session else 5
+        user = User(
+          
+        )
         user = User.objects.create_user(
           params.get("email"),
           params.get("email"),
           params.get("password"),
-          searches_left=searches_left
+          searches_left=searches_left,
+          company_name=params.get("company_name"),
+          name=params.get("name"),
+          work_type=params.get("work_type")
         )
         refresh = RefreshToken.for_user(user)
         return Response(
@@ -110,8 +138,8 @@ class SignUpApiView(APIView):
           },
           status=status.HTTP_200_OK
         )
-      except Exception as e:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+      # except Exception:
+      #   return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class UserApiView(APIView):
   serializer_class = CurrentUserSerializer

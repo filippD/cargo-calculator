@@ -42,7 +42,7 @@ class Calculate:
         d = R * c  # distance in km
         return d
 
-# speed
+    # speed
     def v(s, v_max, k_m):
         return (v_max * s) / (k_m + s)
 
@@ -64,7 +64,7 @@ class Calculate:
 
     # # Import Databases
 
-    # In[831]:
+    # In[27]:
 
 
     df_base = pd.read_csv('base.csv', sep=";")
@@ -74,7 +74,7 @@ class Calculate:
 
     # # Transform data to pd.DataFrame
 
-    # In[832]:
+    # In[28]:
 
 
     df_base['arr_origin'] = input_dict['arr_origin']
@@ -83,10 +83,42 @@ class Calculate:
     df_base['payload_kg'] = input_dict['payload']
     df_base['num_flights'] = (df_base['payload_kg'] / df_base['MZFW_Payload']).apply(np.ceil).astype(int)
 
+    if input_dict['cargo_items'] and len(input_dict['cargo_items']) > 0:
+      df_base['w_1'] = int(input_dict['cargo_items'][0]['w'])
+      df_base['h_1'] = int(input_dict['cargo_items'][0]['h'])
+      df_base['l_1'] = int(input_dict['cargo_items'][0]['l'])
+    else:
+      df_base['w_1'] = 0
+      df_base['h_1'] = 0
+      df_base['l_1'] = 0
+
+
+    # # Drop Oversize
+
+    # In[29]:
+
+
+    # Rule 1: Item should be lower by Width of one of the Doors
+    df_base = df_base[(df_base['w_1'] < df_base['nose_door_w']) |
+                    (df_base['w_1'] < df_base['main_deck_side_door_w']) |
+                    (df_base['w_1'] < df_base['main_deck_side_FWD_door_w']) |
+                    (df_base['w_1'] < df_base['main_deck_side_AFT_door_w'])]
+
+    # Rule 2: Item should be lower by Height of one of the Doors
+    df_base = df_base[(df_base['h_1'] < df_base['nose_door_h']) |
+                    (df_base['h_1'] < df_base['main_deck_side_door_h']) |
+                    (df_base['h_1'] < df_base['main_deck_side_FWD_door_h']) |
+                    (df_base['h_1'] < df_base['main_deck_side_AFT_door_h'])]
+
+    # Rule 3: Item should be lower by Lenght of one of the Doors
+    df_base = df_base[(df_base['l_1'] < df_base['main_compartment_l']) |
+                    (df_base['l_1'] < df_base['lower_FWD_compartment_l']) |
+                    (df_base['l_1'] < df_base['lower AFT_compartment_l'])]
+
 
     # # Load Coordinates
 
-    # In[833]:
+    # In[30]:
 
 
 
@@ -113,7 +145,7 @@ class Calculate:
 
     # # Load Distances
 
-    # In[834]:
+    # In[31]:
 
 
     df_base['flight_distance'] = df_base.apply(lambda row: distance(row.dep_airport_lat, row.dep_airport_long, row.arr_airport_lat, row.arr_airport_long) , axis = 1)
@@ -127,7 +159,7 @@ class Calculate:
 
     # # Flight
 
-    # In[835]:
+    # In[32]:
 
 
     # Number of Flight legs
@@ -178,7 +210,7 @@ class Calculate:
 
     # # Empty Leg
 
-    # In[836]:
+    # In[33]:
 
 
     # Number of Empty legs
@@ -229,7 +261,7 @@ class Calculate:
 
     # # Ferry 1 Virtual
 
-    # In[837]:
+    # In[34]:
 
 
     # Number of Ferry 1 segments
@@ -256,7 +288,7 @@ class Calculate:
 
     # # Ferry 1 Current
 
-    # In[838]:
+    # In[35]:
 
 
     # Number of Ferry 1 segments
@@ -283,7 +315,7 @@ class Calculate:
 
     # # Ferry 2
 
-    # In[839]:
+    # In[36]:
 
 
     # Number of Ferry 2 segments
@@ -310,7 +342,7 @@ class Calculate:
 
     # # Time-critical quotations
 
-    # In[840]:
+    # In[37]:
 
 
     # Time
@@ -390,17 +422,22 @@ class Calculate:
     df_output['Payload kg'] = df_base['MZFW_Payload']
     df_output['Price'] = df_base['price']
     df_output['Price'] = df_output['Price'].apply(lambda x: "{:,.0f} USD".format((x)))
-    df_output['Contact'] = df_base['contact']
+
+    df_output['Email'] = df_base['email']
+    df_output['Phone'] = df_base['phone']
+    df_output['Website'] = df_base['link']
+    df_output['Form'] = df_base['form']
+
 
     # dict_output
-    dict_output_time_critical = df_output.to_dict('records')[0:8]
+    dict_output_time_critical = df_output.to_dict('records')
 
     dict_output_time_critical
 
 
     # # General quotations
 
-    # In[841]:
+    # In[39]:
 
 
     # Time
@@ -480,8 +517,20 @@ class Calculate:
     df_output['Payload kg'] = df_base['MZFW_Payload']
     df_output['Price'] = df_base['price']
     df_output['Price'] = df_output['Price'].apply(lambda x: "{:,.0f} USD".format((x)))
-    df_output['Contact'] = df_base['contact']
+
+    df_output['Email'] = df_base['email'].fillna('') if not df_base['email'].empty else df_base['email']
+    df_output['Phone'] = df_base['phone'].fillna('') if not df_base['phone'].empty else df_base['phone']
+    df_output['Website'] = df_base['link'].fillna('') if not df_base['link'].empty else df_base['link']
+    df_output['Form'] = df_base['form'].fillna('') if not df_base['form'].empty else df_base['form']
 
     # dict_output
-    dict_output_general = df_output.to_dict('records')[0:8]
+    dict_output_general = df_output.to_dict('records')[0:13]
+    print(dict_output_general)
     return dict_output_general
+
+
+    # In[ ]:
+
+
+
+
