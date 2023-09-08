@@ -15,7 +15,7 @@ environ.Env.read_env()
 SECRET_KEY = 'django-insecure-q4@58pux_t@$76bt(o4(vb$8-c0qt&(98i57-$uhd$xw86zimg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["airmission.aero", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = ['https://*.airmission.aero','https://*.127.0.0.1']
@@ -146,8 +146,11 @@ SIMPLE_JWT = {
      'BLACKLIST_AFTER_ROTATION': True
 }
 
+PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__))
+
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 STATIC_URL = '/static/'
-STATICFILES_DIRS=[
-    os.path.join(BASE_DIR,'static')
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    "/var/www/cargo-calculator/static/",
 ]
-STATIC_ROOT=os.path.join(BASE_DIR,'assests')
