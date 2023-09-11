@@ -101,7 +101,7 @@ class ModifyPaymentEmailApiView(APIView):
 
 class AuthorizeApiView(APIView):
 	def post(self, request, *args, **kwargs):
-		response = Authorize.call(json.loads(request.body))
+		response = Authorize.call(self, json.loads(request.body))
 		print(response)
 		return Response(response, status=status.HTTP_200_OK)
 
