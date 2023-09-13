@@ -19,7 +19,7 @@ class Calculate:
     time_critical = input_dict.get("time_critical")
     general_request = not time_critical
     one_leg = input_dict.get("one_leg")
-    charter_focused = input_dict.get("charter_focused")
+    charter_focused = input_dict.get("charter")
 
     # time-critical
     time_critical_priority_for_one_leg_flight = time_critical and one_leg
@@ -28,7 +28,6 @@ class Calculate:
     # general
     general_priority_for_one_leg_flight = general_request and one_leg
     general_priority_for_charter_focused_operators = general_request and charter_focused
-
 
     def distance(lat1, lon1, lat2, lon2):
         R = 6371  # radius of the earth in km
@@ -525,7 +524,6 @@ class Calculate:
 
     # dict_output
     dict_output_general = df_output.to_dict('records')[0:13]
-    print(dict_output_general)
     return dict_output_general
 
 
