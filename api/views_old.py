@@ -72,11 +72,11 @@ class CharterCompanyApiView(APIView):
     # res = charter_company
     df_output = pd.DataFrame()
     df_output["airline"] = charter_company["airline"]
-    df_output["email"] = charter_company["email"]
+    df_output["email"] = charter_company['email'].fillna('') if not charter_company['email'].empty else charter_company['email']
     df_output["phone"] = charter_company['phone'].fillna('') if not charter_company['phone'].empty else charter_company['phone']
     df_output["link"] = charter_company['link'].fillna('') if not charter_company['link'].empty else charter_company['link']
     df_output["form"] = charter_company['form'].fillna('') if not charter_company['form'].empty else charter_company['form']
-    df_output["Operator"] = charter_company["operator"]
+    df_output["Operator"] = charter_company['operator'].fillna('') if not charter_company['operator'].empty else charter_company['operator']
     rsp = df_output.to_dict("records")
     # rsp = res.to_dict("records")
     # rsp = json.dumps(charter_company.to_dict("records"), allow_nan=True)
