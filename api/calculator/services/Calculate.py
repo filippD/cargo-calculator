@@ -99,20 +99,39 @@ class Calculate:
 
     # Rule 1: Item should be lower by Width of one of the Doors
     df_base = df_base[(df_base['w_1'] < df_base['nose_door_w']) |
-                    (df_base['w_1'] < df_base['main_deck_side_door_w']) |
-                    (df_base['w_1'] < df_base['main_deck_side_FWD_door_w']) |
-                    (df_base['w_1'] < df_base['main_deck_side_AFT_door_w'])]
+                  (df_base['w_1'] < df_base['main_deck_side_door_w']) |
+                  (df_base['w_1'] < df_base['main_deck_side_FWD_door_w']) |
+                  (df_base['w_1'] < df_base['main_deck_side_AFT_door_w']) |
+                  (df_base['w_1'] < df_base['lower_deck_side_FWD_door_w']) |
+                  (df_base['w_1'] < df_base['lower_deck_side_AFT_door_w']) |
+                  (df_base['w_1'] < df_base['bulk_door_w']) |
+                  (df_base['w_1'] < df_base['rear_door_w'])]
 
     # Rule 2: Item should be lower by Height of one of the Doors
     df_base = df_base[(df_base['h_1'] < df_base['nose_door_h']) |
-                    (df_base['h_1'] < df_base['main_deck_side_door_h']) |
-                    (df_base['h_1'] < df_base['main_deck_side_FWD_door_h']) |
-                    (df_base['h_1'] < df_base['main_deck_side_AFT_door_h'])]
+                  (df_base['h_1'] < df_base['main_deck_side_door_h']) |
+                  (df_base['h_1'] < df_base['main_deck_side_FWD_door_h']) |
+                  (df_base['h_1'] < df_base['main_deck_side_AFT_door_h']) |
+                  (df_base['h_1'] < df_base['lower_deck_side_FWD_door_h']) |
+                  (df_base['h_1'] < df_base['lower_deck_side_AFT_door_h']) |
+                  (df_base['h_1'] < df_base['bulk_door_h']) |
+                  (df_base['h_1'] < df_base['rear_door_h'])]
+
 
     # Rule 3: Item should be lower by Lenght of one of the Doors
-    df_base = df_base[(df_base['l_1'] < df_base['main_compartment_l']) |
-                    (df_base['l_1'] < df_base['lower_FWD_compartment_l']) |
-                    (df_base['l_1'] < df_base['lower AFT_compartment_l'])]
+    df_base = df_base[
+    (
+        (df_base['nose_door_h'] > 0) & (df_base['l_1'] < df_base['main_compartment_l'])
+    )
+    |
+    (
+        (df_base['rear_door_h'] > 0) & (df_base['l_1'] < df_base['main_compartment_l'])
+    )
+    |
+    (
+        df_base['l_1'] < (df_base['main_compartment_w'] / df_base['w_1'] * df_base['main_deck_side_door_w'])
+    )
+]
 
 
     # # Load Coordinates
