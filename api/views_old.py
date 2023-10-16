@@ -8,12 +8,14 @@ import json
 import environ
 from google.cloud import recaptchaenterprise_v1
 from django.contrib.auth import authenticate
-from .models import User, UserSession
+from .models.User import User
+from .models.UserSession import UserSession
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CurrentUserSerializer, UserSessionSerializer
 from django.forms.models import model_to_dict
 from rest_framework_simplejwt.tokens import RefreshToken
 import pandas as pd
+import ipdb
 
 class CalculateApiView(APIView):
   def post(self, request, *args, **kwargs):
@@ -148,7 +150,10 @@ class UserApiView(APIView):
   def get(self, request, *args, **kwargs):
     serializer = self.serializer_class(data=model_to_dict(request.user))
     if serializer.is_valid():
-      return Response(serializer.data, status=status.HTTP_200_OK)
+      response = serializer.data
+      response["id"] = request.user.id
+
+      return Response(response, status=status.HTTP_200_OK)
     else:
       return Response(status=status.HTTP_401_UNAUTHORIZED)
 

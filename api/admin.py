@@ -1,6 +1,13 @@
 from django.contrib import admin
-from .models import User, CharterHistory
+from .models.User import User
+from .models.CharterHistory import CharterHistory
+from .models.Auction import Auction
+from .models.AuctionBid import AuctionBid
 
 # Register your models here.
-admin.site.register(User)
-admin.site.register(CharterHistory)
+admin.site.register([
+  User,
+  CharterHistory,
+  Auction,
+  AuctionBid
+])

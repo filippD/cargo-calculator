@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import User, UserSession, CharterHistory
+from .models.User import User
+from .models.UserSession import UserSession
+from .models.CharterHistory import CharterHistory
 
 class CurrentUserSerializer(serializers.ModelSerializer):
     class Meta:

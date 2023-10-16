@@ -1,6 +1,10 @@
 from django.urls import path
 from .views_old import CalculateApiView, RequestsApiView, AirportsApiView, ReviewsApiView, AuthorizeApiView, UploadApiView, LoginApiView, UserApiView, SignUpApiView, LogoutApiView, SessionsApiView, RequestPaymentApiView, UpdateToPremiumApiView, ModifyPaymentEmailApiView, CharterCompanyApiView
 from api.views.CharterHistoriesView import ChartersHistoryApiView
+from api.views.AuctionsGetApiView import AuctionsGetApiView
+from api.views.AuctionsIndexApiView import AuctionsIndexApiView
+from api.views.AuctionsCreateApiView import AuctionsCreateApiView
+from api.views.AuctionsExpireApiView import AuctionsExpireApiView
 from django.contrib import admin
 
 urlpatterns = [
@@ -21,5 +25,9 @@ urlpatterns = [
     path('charter_histories', ChartersHistoryApiView.as_view()),
     path('charter_histories/<int:id>/', ChartersHistoryApiView.as_view()),
     path('charter_companies/<charter_id>/', CharterCompanyApiView.as_view()),
+    path('auctions/<auction_id>/', AuctionsGetApiView.as_view()),
+    path('auctions/', AuctionsIndexApiView.as_view()),
+    path('auctions/create', AuctionsCreateApiView.as_view()),
+    path('auctions/<auction_id>/expire', AuctionsExpireApiView.as_view()),
     path("admin/", admin.site.urls),
 ]
