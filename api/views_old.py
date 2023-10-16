@@ -15,7 +15,6 @@ from .serializers import CurrentUserSerializer, UserSessionSerializer
 from django.forms.models import model_to_dict
 from rest_framework_simplejwt.tokens import RefreshToken
 import pandas as pd
-import ipdb
 
 class CalculateApiView(APIView):
   def post(self, request, *args, **kwargs):
