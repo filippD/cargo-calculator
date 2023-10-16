@@ -6,12 +6,16 @@ import re
 from ..models import Auction, AuctionBid, CargoItem
 from rest_framework.permissions import IsAuthenticated
 from api.calculator.Client import Client
+import requests
+import environ
 
 class AuctionsCreateApiView(APIView):
   permission_classes = (IsAuthenticated, )
   def post(self, request, *args, **kwargs):
     # try:
       params = json.loads(request.body)
+      env = environ.Env()
+      environ.Env.read_env()
       auction = Auction(
         cargo_type=params.get("cargo_type"),
         departure_airport=params.get("arr_origin"),
@@ -58,6 +62,10 @@ class AuctionsCreateApiView(APIView):
             operator_phone=generated_bid.get("Phone")
           )
           bid.save()
+      requests.post(
+        f'https://api.telegram.org/bot{env("BOT_TOKEN")}/sendMessage',
+        json={'chat_id': env('TG_CHAT_ID'), 'text': f'New auction request https://airmission.aero/auctions/{auction.strong_id}'}
+      )
       return Response({
         'id': auction.strong_id,
         'cargo_type': auction.cargo_type,
