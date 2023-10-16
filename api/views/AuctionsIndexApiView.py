@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from ..models import Auction
+from ..models import Auction, AuctionBid
 import datetime
 import json
 from rest_framework.permissions import IsAuthenticated
@@ -65,8 +65,11 @@ class AuctionsIndexApiView(APIView):
     return Response(resp, status=status.HTTP_200_OK)
 
   permission_classes = []
-  def get(self, request):    
-    auction = Auction.objects.first()
+  def get(self, request):
+    bid = AuctionBid.objects.filter(bid_type="confirmed").last()
+    if not bid:
+      return Response(status=status.HTTP_404_NOT_FOUND)
+    auction = Auction.objects.get(pk=bid.auction_id)
 
     resp = {
         'id': auction.strong_id,
