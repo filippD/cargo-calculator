@@ -7,3 +7,4 @@ db.sqlite3
 /static
 /api/static
 base.csv
+.venv
