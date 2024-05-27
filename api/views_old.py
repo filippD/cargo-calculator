@@ -21,14 +21,14 @@ class CalculateApiView(APIView):
     params = json.loads(request.body)
     env = environ.Env()
     environ.Env.read_env()
-    captcha_assesment = create_assessment(
-			project_id=env('GOOGLE_PROJECT_ID'),
-			recaptcha_site_key=env('RECAPTCHA_SITE_KEY'),
-			token=params.get("recaptchaToken"),
-			recaptcha_action="formSearch"
-		)
-    if captcha_assesment.risk_analysis.score < 0.5:
-      return Response(status=status.HTTP_403_FORBIDDEN)
+    # captcha_assesment = create_assessment(
+		# 	project_id=env('GOOGLE_PROJECT_ID'),
+		# 	recaptcha_site_key=env('RECAPTCHA_SITE_KEY'),
+		# 	token=params.get("recaptchaToken"),
+		# 	recaptcha_action="formSearch"
+		# )
+    # if captcha_assesment.risk_analysis.score < 0.5:
+    #   return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.user.is_authenticated:
       if request.user.is_premium or request.user.searches_left > 0:
